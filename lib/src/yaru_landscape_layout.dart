@@ -1,27 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:yaru_widgets/src/yaru_page_item_list_view.dart';
-import 'package:yaru_widgets/src/yaru_search_app_bar.dart';
+
 import 'yaru_page_item.dart';
 
 class YaruLandscapeLayout extends StatefulWidget {
+  /// Creates a landscape layout
   const YaruLandscapeLayout({
     Key? key,
     required this.selectedIndex,
-    required this.pages,
+    required this.pageItems,
     required this.onSelected,
-    required this.appBarHeight,
     required this.leftPaneWidth,
-    required this.searchIconData,
-    required this.searchHint,
+    this.appBar,
   }) : super(key: key);
 
+  /// Current index of the selected page.
   final int selectedIndex;
-  final List<YaruPageItem> pages;
+
+  /// Creates horizontal array of pages.
+  /// All the `children` will be of type [YaruPageItem]
+  final List<YaruPageItem> pageItems;
+
+  /// Callback that returns an index when the page changes.
   final ValueChanged<int> onSelected;
-  final double appBarHeight;
+
+  /// Specifies the width of left pane.
   final double leftPaneWidth;
-  final IconData searchIconData;
-  final String searchHint;
+
+  /// An optional [PreferredSizeWidget] used as the left [AppBar]
+  /// If provided, a second [AppBar] will be created right to it.
+  final PreferredSizeWidget? appBar;
 
   @override
   State<YaruLandscapeLayout> createState() => _YaruLandscapeLayoutState();
@@ -29,24 +37,14 @@ class YaruLandscapeLayout extends StatefulWidget {
 
 class _YaruLandscapeLayoutState extends State<YaruLandscapeLayout> {
   late int _selectedIndex;
-  late ScrollController _contentScrollController;
-  late TextEditingController _searchController;
-  final _filteredItems = <YaruPageItem>[];
 
   @override
   void initState() {
     _selectedIndex = widget.selectedIndex;
-    _contentScrollController = ScrollController();
-    _searchController = TextEditingController();
     super.initState();
   }
 
-  void onTap(int index) {
-    if (_filteredItems.isNotEmpty) {
-      index = widget.pages.indexOf(widget.pages.firstWhere(
-          (pageItem) => pageItem.title == _filteredItems[index].title));
-    }
-
+  void _onTap(int index) {
     widget.onSelected(index);
     setState(() => _selectedIndex = index);
   }
@@ -57,18 +55,25 @@ class _YaruLandscapeLayoutState extends State<YaruLandscapeLayout> {
       body: Column(
         children: [
           SizedBox(
-            height: widget.appBarHeight,
+            height: widget.appBar != null
+                ? Theme.of(context).appBarTheme.toolbarHeight ?? kToolbarHeight
+                : 0,
             child: Row(
               children: [
                 SizedBox(
                   width: widget.leftPaneWidth,
-                  child: addSearchBar(),
+                  child: widget.appBar,
                 ),
-                Expanded(
-                  child: AppBar(
-                    title: Text(widget.pages[_selectedIndex].title),
-                  ),
-                )
+                if (widget.appBar != null)
+                  Expanded(
+                    child: AppBar(
+                      title: widget.pageItems[
+                              widget.pageItems.length > _selectedIndex
+                                  ? _selectedIndex
+                                  : 0]
+                          .titleBuilder(context),
+                    ),
+                  )
               ],
             ),
           ),
@@ -89,54 +94,20 @@ class _YaruLandscapeLayoutState extends State<YaruLandscapeLayout> {
                       ),
                     ),
                     child: YaruPageItemListView(
-                      selectedIndex: _selectedIndex,
-                      onTap: onTap,
-                      pages: _filteredItems.isEmpty
-                          ? widget.pages
-                          : _filteredItems,
-                    ),
+                        selectedIndex: _selectedIndex,
+                        onTap: _onTap,
+                        pages: widget.pageItems),
                   ),
                 ),
                 Expanded(
-                    child: SingleChildScrollView(
-                  controller: _contentScrollController,
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: widget.pages[_selectedIndex].builder(context),
-                    ),
-                  ),
-                )),
+                    child: widget.pageItems.length > _selectedIndex
+                        ? widget.pageItems[_selectedIndex].builder(context)
+                        : widget.pageItems[0].builder(context)),
               ],
             ),
           ),
         ],
       ),
-    );
-  }
-
-  YaruSearchAppBar addSearchBar() {
-    return YaruSearchAppBar(
-      searchHint: widget.searchHint,
-      searchController: _searchController,
-      onChanged: (value) {
-        setState(() {
-          _filteredItems.clear();
-          for (YaruPageItem pageItem in widget.pages) {
-            if (pageItem.title
-                .toLowerCase()
-                .contains(_searchController.value.text.toLowerCase())) {
-              _filteredItems.add(pageItem);
-            }
-          }
-        });
-      },
-      onEscape: () => setState(() {
-        _searchController.clear();
-        _filteredItems.clear();
-      }),
-      appBarHeight: widget.appBarHeight,
-      searchIconData: widget.searchIconData,
     );
   }
 }

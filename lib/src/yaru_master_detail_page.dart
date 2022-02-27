@@ -4,22 +4,43 @@ import 'package:yaru_widgets/src/yaru_page_item.dart';
 import 'package:yaru_widgets/src/yaru_portrait_layout.dart';
 
 class YaruMasterDetailPage extends StatefulWidget {
+  /// Creates a basic responsive layout with yaru theme,
+  /// renders layout based on [width] constrain.
+  ///
+  /// * if [constraints.maxWidth] < 620 the widget will render [YaruPotraitLayout]
+  /// * if [constraints.maxWidth] > 620 widget will render [YaruLandscapeLayout]
+  ///
+  /// for example:
+  /// ```dart
+  /// YaruMasterDetailPage(
+  ///       appBarHeight: 48,
+  ///       leftPaneWidth: 280,
+  ///       previousIconData: YaruIcons.go_previous,
+  ///      pageItems: pageItems,
+  ///     );
+  /// ```
   const YaruMasterDetailPage({
     Key? key,
-    required this.appBarHeight,
     required this.pageItems,
-    required this.previousIconData,
-    required this.searchIconData,
+    this.previousIconData,
     required this.leftPaneWidth,
-    required this.searchHint,
+    this.appBar,
   }) : super(key: key);
 
+  /// Creates horizontal array of pages.
+  /// All the `children` will be of type [YaruPageItem].
+  ///
+  /// These List of items are passed to [YaruLandscapeLayout] and [YaruPortraitLayout].
   final List<YaruPageItem> pageItems;
-  final double appBarHeight;
+
+  /// Specifies the width of left pane.
   final double leftPaneWidth;
-  final IconData previousIconData;
-  final IconData searchIconData;
-  final String searchHint;
+
+  /// Property to specify the previous icon data
+  final IconData? previousIconData;
+
+  /// An optional custom AppBar for the left pane.
+  final PreferredSizeWidget? appBar;
 
   @override
   _YaruMasterDetailPageState createState() => _YaruMasterDetailPageState();
@@ -41,22 +62,18 @@ class _YaruMasterDetailPageState extends State<YaruMasterDetailPage> {
         if (constraints.maxWidth < 620) {
           return YaruPortraitLayout(
             selectedIndex: _index,
-            pages: widget.pageItems,
+            pageItems: widget.pageItems,
             onSelected: _setIndex,
-            appBarHeight: widget.appBarHeight,
             previousIconData: widget.previousIconData,
-            searchIconData: widget.searchIconData,
-            searchHint: widget.searchHint,
+            appBar: widget.appBar,
           );
         } else {
           return YaruLandscapeLayout(
             selectedIndex: _index == -1 ? _previousIndex : _index,
-            pages: widget.pageItems,
+            pageItems: widget.pageItems,
             onSelected: _setIndex,
-            appBarHeight: widget.appBarHeight,
             leftPaneWidth: widget.leftPaneWidth,
-            searchIconData: widget.searchIconData,
-            searchHint: widget.searchHint,
+            appBar: widget.appBar,
           );
         }
       },

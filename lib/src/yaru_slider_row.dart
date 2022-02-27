@@ -3,8 +3,29 @@ import 'package:yaru_widgets/src/yaru_row.dart';
 import 'package:yaru_widgets/src/yaru_slider_value_marker.dart';
 
 class YaruSliderRow extends StatelessWidget {
+  /// Creates a yaru style slider.
+  /// If the `value` property is null the [Widget] will return [SizedBox].
+  /// Slider is passed as an `actionWidget   inside [YaruRow].
+  /// `actionLabel` and `actionDescription` is placed in a row along with the slider.
+  ///
+  /// For example:
+  /// ```dart
+  ///   YaruSliderRow(
+  ///           actionLabel: "actionLabel",
+  ///           value: _sliderValue,
+  ///           min: 0,
+  ///           max: 100,
+  ///           onChanged: (v) {
+  ///             setState(() {
+  ///               _sliderValue = v;
+  ///             });
+  ///           },
+  ///         ),
+  ///
+  /// ```
   const YaruSliderRow({
     Key? key,
+    this.enabled = true,
     required this.actionLabel,
     this.actionDescription,
     required this.value,
@@ -14,7 +35,11 @@ class YaruSliderRow extends StatelessWidget {
     this.showValue = true,
     this.fractionDigits = 0,
     required this.onChanged,
+    this.width,
   }) : super(key: key);
+
+  /// Whether or not we can interact with the widget
+  final bool enabled;
 
   /// Name of the setting
   final String actionLabel;
@@ -47,16 +72,18 @@ class YaruSliderRow extends StatelessWidget {
   /// Function run when the slider changes its value
   final Function(double) onChanged;
 
+  /// Optional width passed to [YaruRow]
+  final double? width;
+
   @override
   Widget build(BuildContext context) {
     const thumbRadius = 24.0;
-    final value = this.value;
 
-    if (value == null) {
-      return const SizedBox();
-    }
+    final enabled = this.enabled && value != null;
 
     return YaruRow(
+      width: width,
+      enabled: enabled,
       trailingWidget: Text(actionLabel),
       description: actionDescription,
       actionWidget: Expanded(
@@ -65,7 +92,7 @@ class YaruSliderRow extends StatelessWidget {
           children: [
             if (showValue)
               Text(
-                value.toStringAsFixed(fractionDigits),
+                value?.toStringAsFixed(fractionDigits) ?? '',
               ),
             Expanded(
               child: LayoutBuilder(
@@ -81,11 +108,11 @@ class YaruSliderRow extends StatelessWidget {
                         child: const YaruSliderValueMarker(),
                       ),
                     Slider(
-                      label: value.toStringAsFixed(0),
+                      label: value?.toStringAsFixed(0),
                       min: min,
                       max: max,
-                      value: value,
-                      onChanged: onChanged,
+                      value: value ?? min,
+                      onChanged: enabled ? onChanged : null,
                     ),
                   ],
                 ),
