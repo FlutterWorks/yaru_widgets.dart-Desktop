@@ -3,7 +3,7 @@ import 'package:yaru_icons/yaru_icons.dart';
 import 'package:yaru_widgets/yaru_widgets.dart';
 
 class SelectableContainerPage extends StatefulWidget {
-  const SelectableContainerPage({Key? key}) : super(key: key);
+  const SelectableContainerPage({super.key});
 
   @override
   State<SelectableContainerPage> createState() =>
@@ -17,65 +17,74 @@ class _SelectableContainerPageState extends State<SelectableContainerPage> {
 
   @override
   Widget build(BuildContext context) {
-    return YaruPage(
-      children: [
-        GridView(
-          shrinkWrap: true,
-          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(kYaruPagePadding),
+      child: Column(
+        children: [
+          GridView(
+            shrinkWrap: true,
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
               maxCrossAxisExtent: 300,
               childAspectRatio: 16 / 12,
               mainAxisSpacing: 10,
-              crossAxisSpacing: 10),
-          children: [
-            YaruSelectableContainer(
-              selected: !_isImageSelected,
-              onTap: () => setState(() => _isImageSelected = !_isImageSelected),
-              child: Image.asset(
-                'assets/ubuntuhero.jpg',
-                filterQuality: FilterQuality.low,
-                fit: BoxFit.fill,
-                height: 300,
-              ),
+              crossAxisSpacing: 10,
             ),
-            YaruSelectableContainer(
-              selected: _isImageSelected,
-              onTap: () => setState(() => _isImageSelected = !_isImageSelected),
-              child: Image.asset(
-                'assets/ubuntuhero.jpg',
-                filterQuality: FilterQuality.low,
-                fit: BoxFit.fill,
-                height: 300,
+            children: [
+              YaruSelectableContainer(
+                selected: !_isImageSelected,
+                onTap: () =>
+                    setState(() => _isImageSelected = !_isImageSelected),
+                child: Image.asset(
+                  'assets/ubuntuhero.jpg',
+                  filterQuality: FilterQuality.low,
+                  fit: BoxFit.fill,
+                  height: 300,
+                ),
               ),
-            ),
-          ],
-        ),
-        SizedBox(
-          height: 20,
-        ),
-        YaruSelectableContainer(
-          selected: _isTextSelected,
-          onTap: () => setState(() => _isTextSelected = !_isTextSelected),
-          child: Padding(
-            padding: const EdgeInsets.all(18.0),
-            child: Text('This is just text but can be selected!'),
+              YaruSelectableContainer(
+                selected: _isImageSelected,
+                onTap: () =>
+                    setState(() => _isImageSelected = !_isImageSelected),
+                child: Image.asset(
+                  'assets/ubuntuhero.jpg',
+                  filterQuality: FilterQuality.low,
+                  fit: BoxFit.fill,
+                  height: 300,
+                ),
+              ),
+            ],
           ),
-        ),
-        SizedBox(
-          height: 20,
-        ),
-        YaruSelectableContainer(
-          borderRadius: BorderRadius.circular(100.0),
-          selected: _isOvalSelected,
-          onTap: () => setState(() => _isOvalSelected = !_isOvalSelected),
-          child: ClipOval(
-            child: Material(
-              color: Colors.amber, // Button color
-              child:
-                  SizedBox(width: 56, height: 56, child: Icon(YaruIcons.heart)),
+          const SizedBox(
+            height: 20,
+          ),
+          YaruSelectableContainer(
+            selected: _isTextSelected,
+            onTap: () => setState(() => _isTextSelected = !_isTextSelected),
+            child: const Padding(
+              padding: EdgeInsets.all(18.0),
+              child: Text('This is just text but can be selected!'),
             ),
           ),
-        )
-      ],
+          const SizedBox(
+            height: 20,
+          ),
+          YaruSelectableContainer(
+            borderRadius: BorderRadius.circular(100.0),
+            selected: _isOvalSelected,
+            onTap: () => setState(() => _isOvalSelected = !_isOvalSelected),
+            child: const ClipOval(
+              child: Material(
+                color: Colors.amber, // Button color
+                child: SizedBox(
+                  width: 56,
+                  height: 56,
+                  child: Icon(YaruIcons.heart),
+                ),
+              ),
+            ),
+          )
+        ],
+      ),
     );
   }
 }

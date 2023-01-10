@@ -1,70 +1,42 @@
-import 'package:flutter/gestures.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:ubuntu_service/ubuntu_service.dart';
 import 'package:yaru/yaru.dart';
-import 'package:yaru_icons/yaru_icons.dart';
 import 'package:yaru_widgets/yaru_widgets.dart';
-import 'package:yaru_widgets_example/example_page_items.dart';
 
-void main() {
-  runApp(Home());
+import 'example.dart';
+import 'theme.dart';
+
+Future<void> main() async {
+  await YaruWindowTitleBar.ensureInitialized();
+
+  registerService<Connectivity>(Connectivity.new);
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => LightTheme(yaruLight)),
+        ChangeNotifierProvider(create: (_) => DarkTheme(yaruDark)),
+      ],
+      child: const Home(),
+    ),
+  );
 }
 
-class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
-
-  @override
-  State<Home> createState() => _HomeState();
-}
-
-class _HomeState extends State<Home> {
-  final _filteredItems = <YaruPageItem>[];
-  final _searchController = TextEditingController();
-
-  void _onEscape() => setState(() {
-        _filteredItems.clear();
-        _searchController.clear();
-      });
-
-  void _onSearchChanged(String value, BuildContext context) {
-    setState(() {
-      _filteredItems.clear();
-      _filteredItems.addAll(examplePageItems.where((pageItem) =>
-          pageItem.searchMatches != null &&
-          pageItem.searchMatches!(value, context)));
-    });
-  }
+class Home extends StatelessWidget {
+  const Home({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      scrollBehavior: TouchMouseStylusScrollBehavior(),
+      title: 'Yaru Widgets Factory',
       debugShowCheckedModeBanner: false,
-      theme: yaruLight,
-      darkTheme: yaruDark,
-      home: YaruMasterDetailPage(
-        leftPaneWidth: 280,
-        previousIconData: YaruIcons.go_previous,
-        pageItems:
-            _filteredItems.isNotEmpty ? _filteredItems : examplePageItems,
-        appBar: YaruSearchAppBar(
-          searchHint: 'Search...',
-          clearSearchIconData: YaruIcons.window_close,
-          searchController: _searchController,
-          onChanged: (v) => _onSearchChanged(v, context),
-          onEscape: _onEscape,
-          appBarHeight: 48,
-          searchIconData: YaruIcons.search,
-        ),
+      theme: context.watch<LightTheme>().value,
+      darkTheme: context.watch<DarkTheme>().value,
+      home: Scaffold(
+        appBar: const YaruWindowTitleBar(),
+        body: Example.create(context),
       ),
     );
   }
-}
-
-class TouchMouseStylusScrollBehavior extends MaterialScrollBehavior {
-  @override
-  Set<PointerDeviceKind> get dragDevices => {
-        PointerDeviceKind.touch,
-        PointerDeviceKind.mouse,
-        PointerDeviceKind.stylus
-      };
 }
