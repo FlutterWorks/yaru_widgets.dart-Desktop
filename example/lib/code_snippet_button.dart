@@ -18,28 +18,26 @@ class CodeSnippedButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final model = context.watch<ExampleModel>();
     if (pageItem.snippetUrl == null) {
-      return Container();
+      return const SizedBox.shrink();
     }
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: Center(
-        child: YaruIconButton(
-          onPressed: () => showDialog(
-            barrierDismissible: true,
-            context: context,
-            builder: (context) {
-              return ChangeNotifierProvider.value(
-                value: model,
-                child: _CodeDialog(
-                  pageItem: pageItem,
-                ),
-              );
-            },
-          ),
-          icon: const Icon(YaruIcons.code),
-          tooltip: 'Example snippet',
-        ),
+    return FloatingActionButton(
+      onPressed: () => showDialog(
+        barrierDismissible: true,
+        context: context,
+        builder: (context) {
+          return ChangeNotifierProvider.value(
+            value: model,
+            child: _CodeDialog(
+              pageItem: pageItem,
+            ),
+          );
+        },
       ),
+      tooltip: 'Example snippet',
+      foregroundColor: Theme.of(context).colorScheme.onSurface,
+      backgroundColor: PopupMenuTheme.of(context).color,
+      shape: PopupMenuTheme.of(context).shape,
+      child: const Icon(YaruIcons.code),
     );
   }
 }
@@ -59,7 +57,7 @@ class _CodeDialog extends StatelessWidget {
     return AlertDialog(
       titlePadding: EdgeInsets.zero,
       title: YaruDialogTitleBar(
-        title: Text(!model.appIsOnline ? 'Offline' : pageItem.tooltipMessage),
+        title: Text(!model.appIsOnline ? 'Offline' : pageItem.title),
         leading: !model.appIsOnline
             ? null
             : Center(
@@ -80,9 +78,10 @@ class _CodeDialog extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  YaruAnimatedNoNetworkIcon(
+                  YaruAnimatedIcon(
+                    const YaruAnimatedNoNetworkIcon(),
                     size: 200,
-                    color: Theme.of(context).errorColor,
+                    color: Theme.of(context).colorScheme.error,
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(

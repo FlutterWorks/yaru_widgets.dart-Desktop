@@ -1,9 +1,16 @@
-## Pull request checklist
+<!-- REMINDER:
 
-- [ ] This PR does not introduce visual changes, **or**
-  - I ran `flutter test --update-goldens` and committed the changes if there were any, **or**
-  - I added before/after/light/dark screenshots if the visual changes I made were not covered by golden tests.
-    | |Before|After|
-    |-|-|-|
-    |Light| | |
-    |Dark| | |
+1) For a bug fix, please target the `release` branch, else target `main`.
+
+2) If this PR introduces any visual changes, please run:
+```
+flutter test --update-goldens
+```
+and commit the changes **or** if not covered by tests, attach screenshots below:
+
+|       | Before | After |
+|-------|--------|-------|
+| Light |        |       |
+| Dark  |        |       |
+
+-->

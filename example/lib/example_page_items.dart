@@ -1,46 +1,61 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:yaru_icons/yaru_icons.dart';
+import 'package:yaru_widgets/yaru_widgets.dart';
 
+import 'pages/autocomplete_page.dart';
 import 'pages/banner_page.dart';
 import 'pages/carousel_page.dart';
 import 'pages/checkbox_page.dart';
+import 'pages/choice_chip_bar_page.dart';
+import 'pages/clip_page.dart';
 import 'pages/color_disk_page.dart';
 import 'pages/dialog_page.dart';
 import 'pages/draggable_page.dart';
 import 'pages/expandable_page.dart';
+import 'pages/expansion_panel_page.dart';
 import 'pages/icon_button_page.dart';
 import 'pages/navigation_page.dart';
 import 'pages/option_button_page.dart';
+import 'pages/page_indicator.dart';
 import 'pages/popup_page.dart';
 import 'pages/progress_indicator_page.dart';
 import 'pages/radio_page.dart';
+import 'pages/search_field_page.dart';
 import 'pages/section_page.dart';
 import 'pages/selectable_container_page.dart';
 import 'pages/switch_page.dart';
-import 'pages/tabbed_page_page.dart';
 import 'pages/tile_page.dart';
 import 'pages/window_controls_page.dart';
 
 class PageItem {
   const PageItem({
-    required this.titleBuilder,
-    required this.tooltipMessage,
+    required this.title,
+    this.titleBuilder,
     required this.pageBuilder,
     required this.iconBuilder,
     this.snippetUrl,
+    this.supportedLayouts = const {YaruMasterDetailPage, YaruNavigationPage},
   });
 
-  final WidgetBuilder titleBuilder;
-  final String tooltipMessage;
+  final String title;
+  final WidgetBuilder? titleBuilder;
   final WidgetBuilder pageBuilder;
   final String? snippetUrl;
   final Widget Function(BuildContext context, bool selected) iconBuilder;
+  final Set<Type> supportedLayouts;
 }
 
 final examplePageItems = <PageItem>[
   PageItem(
-    titleBuilder: (context) => const Text('YaruBanner'),
-    tooltipMessage: 'YaruBanner',
+    title: 'YaruAutocomplete',
+    snippetUrl:
+        'https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/example/lib/pages/autocomplete_page.dart',
+    pageBuilder: (context) => const AutocompletePage(),
+    iconBuilder: (context, selected) => const Icon(YaruIcons.question),
+  ),
+  PageItem(
+    title: 'YaruBanner',
     snippetUrl:
         'https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/example/lib/pages/banner_page.dart',
     pageBuilder: (context) => const BannerPage(),
@@ -49,16 +64,14 @@ final examplePageItems = <PageItem>[
         : const Icon(YaruIcons.image),
   ),
   PageItem(
-    titleBuilder: (context) => const Text('YaruCarousel'),
-    tooltipMessage: 'YaruCarousel',
+    title: 'YaruCarousel',
     snippetUrl:
         'https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/example/lib/pages/carousel_page.dart',
     pageBuilder: (_) => const CarouselPage(),
     iconBuilder: (context, selected) => const Icon(YaruIcons.refresh),
   ),
   PageItem(
-    titleBuilder: (context) => const Text('YaruCheckbox'),
-    tooltipMessage: 'YaruCheckbox',
+    title: 'YaruCheckbox',
     snippetUrl:
         'https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/example/lib/pages/checkbox_page.dart',
     pageBuilder: (context) => const CheckboxPage(),
@@ -67,46 +80,69 @@ final examplePageItems = <PageItem>[
         : const Icon(YaruIcons.checkbox_checked),
   ),
   PageItem(
-    titleBuilder: (context) => const Text('YaruColorDisk'),
-    tooltipMessage: 'YaruColorDisk',
+    title: 'YaruChoiceChipBar',
+    snippetUrl:
+        'https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/example/lib/pages/filter_pills_page.dart',
+    iconBuilder: (context, selected) => const Icon(YaruIcons.paper_clip),
+    pageBuilder: (_) => const ChoiceChipBarPage(),
+  ),
+  PageItem(
+    title: 'YaruClip',
+    snippetUrl:
+        'https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/example/lib/pages/clip_page.dart',
+    pageBuilder: (context) => const ClipPage(),
+    iconBuilder: (context, selected) => Transform.scale(
+      scaleX: -1,
+      child: selected
+          ? const Icon(YaruIcons.network_cellular_signal_excellent)
+          : const Icon(YaruIcons.network_cellular_signal_none),
+    ),
+  ),
+  PageItem(
+    title: 'YaruColorDisk',
     snippetUrl:
         'https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/example/lib/pages/color_disk_page.dart',
     pageBuilder: (context) => const ColorDiskPage(),
     iconBuilder: (context, selected) => const Icon(YaruIcons.color_select),
   ),
   PageItem(
-    titleBuilder: (context) => const Text('YaruDraggable'),
-    tooltipMessage: 'YaruDraggable',
+    title: 'YaruDraggable',
     snippetUrl:
         'https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/example/lib/pages/draffable_page.dart',
     pageBuilder: (context) => const DraggablePage(),
     iconBuilder: (context, selected) => const Icon(YaruIcons.drag_handle),
   ),
   PageItem(
-    titleBuilder: (context) => const Text('YaruExpandable'),
-    tooltipMessage: 'YaruExpandable',
+    title: 'YaruExpandable',
     snippetUrl:
         'https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/example/lib/pages/expandable_page.dart',
     iconBuilder: (context, selected) => const Icon(YaruIcons.pan_down),
     pageBuilder: (_) => const ExpandablePage(),
   ),
   PageItem(
-    titleBuilder: (context) => const Text('YaruIconButton'),
-    tooltipMessage: 'YaruIconButton',
+    title: 'YaruExpansionPanel',
+    snippetUrl:
+        'https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/example/lib/pages/expansion_panel_page.dart',
+    iconBuilder: (context, selected) => const Icon(YaruIcons.ordered_list_new),
+    pageBuilder: (_) => const ExpansionPanelPage(),
+  ),
+  PageItem(
+    title: 'YaruIconButton',
     snippetUrl:
         'https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/example/lib/pages/icon_button_page.dart',
     iconBuilder: (context, selected) => const Icon(YaruIcons.app_grid),
     pageBuilder: (_) => const IconButtonPage(),
   ),
   PageItem(
-    titleBuilder: (context) => const Text('NavigationPage'),
-    tooltipMessage: 'YaruNavigationPage',
-    iconBuilder: (context, selected) => const Icon(YaruIcons.compass),
+    title: 'YaruNavigationPage',
+    iconBuilder: (context, selected) => selected
+        ? const Icon(YaruIcons.compass_filled)
+        : const Icon(YaruIcons.compass),
     pageBuilder: (_) => const NavigationPage(),
+    supportedLayouts: {YaruMasterDetailPage},
   ),
   PageItem(
-    titleBuilder: (context) => const Text('YaruOptionButton'),
-    tooltipMessage: 'YaruOptionButton',
+    title: 'YaruOptionButton',
     snippetUrl:
         'https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/example/lib/pages/option_button_page.dart',
     iconBuilder: (context, selected) => selected
@@ -115,24 +151,31 @@ final examplePageItems = <PageItem>[
     pageBuilder: (_) => const OptionButtonPage(),
   ),
   PageItem(
-    titleBuilder: (context) => const Text('YaruPopupMenuButton'),
-    tooltipMessage: 'YaruPopupMenuButton',
+    title: 'YaruPageIndicator',
+    snippetUrl:
+        'https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/example/lib/pages/page_indicator.dart',
+    iconBuilder: (context, selected) =>
+        const Icon(YaruIcons.view_more_horizontal),
+    pageBuilder: (_) => const PageIndicatorPage(),
+  ),
+  PageItem(
+    title: 'YaruPopupMenuButton',
     snippetUrl:
         'https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/example/lib/pages/option_button_page.dart',
     iconBuilder: (context, selected) => const Icon(YaruIcons.stop),
     pageBuilder: (_) => const PopupPage(),
   ),
   PageItem(
-    titleBuilder: (context) => const Text('YaruProgressIndicator'),
-    tooltipMessage: 'YaruProgressIndicator',
+    title: 'YaruProgressIndicator',
     snippetUrl:
         'https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/example/lib/pages/progress_indicator_page.dart',
-    iconBuilder: (context, selected) => const Icon(YaruIcons.download),
+    iconBuilder: (context, selected) => selected
+        ? const Icon(YaruIcons.download_filled)
+        : const Icon(YaruIcons.download),
     pageBuilder: (_) => const ProgressIndicatorPage(),
   ),
   PageItem(
-    titleBuilder: (context) => const Text('YaruRadio'),
-    tooltipMessage: 'YaruRadio',
+    title: 'YaruRadio',
     snippetUrl:
         'https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/example/lib/pages/radio_page.dart',
     pageBuilder: (context) => const RadioPage(),
@@ -141,24 +184,32 @@ final examplePageItems = <PageItem>[
         : const Icon(YaruIcons.radiobox_checked),
   ),
   PageItem(
-    titleBuilder: (context) => const Text('YaruSection'),
-    tooltipMessage: 'YaruSection',
+    title: 'YaruSearchField',
+    snippetUrl:
+        'https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/example/lib/pages/search_field_page.dart',
+    iconBuilder: (context, selected) => selected
+        ? const Icon(YaruIcons.search_filled)
+        : const Icon(YaruIcons.search),
+    pageBuilder: (_) => const SearchFieldPage(),
+  ),
+  PageItem(
+    title: 'YaruSection',
     snippetUrl:
         'https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/example/lib/pages/section_page.dart',
-    iconBuilder: (context, selected) => const Icon(YaruIcons.window),
+    iconBuilder: (context, selected) => selected
+        ? const Icon(YaruIcons.window_filled)
+        : const Icon(YaruIcons.window),
     pageBuilder: (_) => const SectionPage(),
   ),
   PageItem(
-    titleBuilder: (context) => const Text('YaruSelectableContainer'),
-    tooltipMessage: 'YaruSelectableContainer',
+    title: 'YaruSelectableContainer',
     snippetUrl:
         'https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/example/lib/pages/selectable_container_page.dart',
     iconBuilder: (context, selected) => const Icon(YaruIcons.selection),
     pageBuilder: (_) => const SelectableContainerPage(),
   ),
   PageItem(
-    titleBuilder: (context) => const Text('YaruSwitch'),
-    tooltipMessage: 'YaruSwitch',
+    title: 'YaruSwitch',
     snippetUrl:
         'https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/example/lib/pages/switch_page.dart',
     pageBuilder: (context) => const SwitchPage(),
@@ -167,24 +218,14 @@ final examplePageItems = <PageItem>[
         : const Icon(YaruIcons.switchbox),
   ),
   PageItem(
-    titleBuilder: (context) => const Text('YaruTabbedPage'),
-    tooltipMessage: 'YaruTabbedPage',
-    snippetUrl:
-        'https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/example/lib/pages/tabbed_page_page.dart',
-    pageBuilder: (_) => const TabbedPagePage(),
-    iconBuilder: (context, selected) => const Icon(YaruIcons.tab_new),
-  ),
-  PageItem(
-    titleBuilder: (context) => const Text('YaruTile'),
-    tooltipMessage: 'YaruTile',
+    title: 'YaruTile',
     snippetUrl:
         'https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/example/lib/pages/tile_page.dart',
     iconBuilder: (context, selected) => const Icon(YaruIcons.unordered_list),
     pageBuilder: (_) => const TilePage(),
   ),
   PageItem(
-    titleBuilder: (context) => const Text('YaruDialogTitleBar'),
-    tooltipMessage: 'YaruDialogTitleBar',
+    title: 'YaruDialogTitleBar',
     snippetUrl:
         'https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/example/lib/pages/dialog_page.dart',
     iconBuilder: (context, selected) => selected
@@ -193,9 +234,10 @@ final examplePageItems = <PageItem>[
     pageBuilder: (_) => const DialogPage(),
   ),
   PageItem(
-    titleBuilder: (context) => const Text('YaruWindowControl'),
-    tooltipMessage: 'YaruWindowControl',
-    iconBuilder: (context, selected) => const Icon(YaruIcons.window_top_bar),
+    title: 'YaruWindowControl',
+    iconBuilder: (context, selected) => selected
+        ? const Icon(YaruIcons.window_top_bar_filled)
+        : const Icon(YaruIcons.window_top_bar),
     pageBuilder: (_) => const WindowControlsPage(),
   ),
-];
+].sortedBy((page) => page.title);

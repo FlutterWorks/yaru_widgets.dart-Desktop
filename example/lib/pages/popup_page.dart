@@ -36,7 +36,7 @@ class _PopupPageState extends State<PopupPage> {
                     child: Text(
                       value.name,
                     ),
-                  )
+                  ),
               ];
             },
           ),
@@ -56,7 +56,7 @@ class _PopupPageState extends State<PopupPage> {
                     value: value,
                     checked: enumSet.contains(value),
                     child: Text(value.name),
-                  )
+                  ),
               ];
             },
           ),
@@ -67,7 +67,6 @@ class _PopupPageState extends State<PopupPage> {
                 for (final value in MyEnum.values)
                   YaruMultiSelectPopupMenuItem<MyEnum>(
                     value: value,
-                    child: Text(value.name),
                     checked: enumSet.contains(value),
                     onChanged: (checked) {
                       // Handle model changes here
@@ -75,10 +74,11 @@ class _PopupPageState extends State<PopupPage> {
                         checked ? enumSet.add(value) : enumSet.remove(value);
                       });
                     },
-                  )
+                    child: Text(value.name),
+                  ),
               ];
             },
-          )
+          ),
         ],
       ),
     );

@@ -5,7 +5,7 @@ class CheckboxPage extends StatefulWidget {
   const CheckboxPage({super.key});
 
   @override
-  _CheckboxPageState createState() => _CheckboxPageState();
+  State<CheckboxPage> createState() => _CheckboxPageState();
 }
 
 class _CheckboxPageState extends State<CheckboxPage> {
@@ -31,7 +31,7 @@ class _CheckboxPageState extends State<CheckboxPage> {
                 value: _checkboxValues[i],
                 onChanged: null,
                 tristate: true,
-              )
+              ),
             ],
           ),
           const SizedBox(height: 10),
