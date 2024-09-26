@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:yaru_widgets/foundation.dart' show YaruPageController;
-import 'package:yaru_widgets/widgets.dart'
+import 'package:yaru/foundation.dart' show YaruPageController;
+import 'package:yaru/widgets.dart'
     show YaruTitleBarTheme, YaruTitleBarThemeData, YaruTitleBarStyle;
 
 import 'yaru_master_detail_page.dart';
@@ -93,8 +93,10 @@ class _YaruPortraitLayoutState extends State<YaruPortraitLayout> {
   @override
   Widget build(BuildContext context) {
     final theme = YaruMasterDetailTheme.of(context);
-    return WillPopScope(
-      onWillPop: () async => !await _navigator.maybePop(),
+    return PopScope(
+      // TODO: implement replacement if we keep YaruMasterDetailPage
+      // ignore: deprecated_member_use
+      onPopInvoked: (v) async => await _navigator.maybePop(),
       child: Theme(
         data: Theme.of(context).copyWith(
           pageTransitionsTheme: theme.portraitTransitions,
@@ -104,6 +106,8 @@ class _YaruPortraitLayoutState extends State<YaruPortraitLayout> {
           initialRoute: widget.initialRoute,
           onGenerateRoute: widget.onGenerateRoute,
           onUnknownRoute: widget.onUnknownRoute,
+          // TODO: implement replacement if we keep YaruMasterDetailPage
+          // ignore: deprecated_member_use
           onPopPage: (route, result) {
             _selectedIndex = -1;
             return route.didPop(result);
@@ -127,6 +131,8 @@ class _YaruPortraitLayoutState extends State<YaruPortraitLayout> {
                       onTap: _onTap,
                       builder: widget.tileBuilder,
                       availableWidth: constraints.maxWidth,
+                      startUndershoot: widget.appBar != null,
+                      endUndershoot: widget.bottomBar != null,
                     ),
                   ),
                   bottomNavigationBar: widget.bottomBar == null

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:yaru_icons/yaru_icons.dart';
+import 'package:yaru/icons.dart';
 
 import 'yaru_back_button_theme.dart';
 import 'yaru_icon_button.dart';
@@ -34,6 +34,7 @@ class YaruBackButton extends StatelessWidget {
     final shape = round ? const CircleBorder() : const BeveledRectangleBorder();
     final button = YaruIconButton(
       icon: icon ?? const Icon(YaruIcons.go_previous),
+      tooltip: MaterialLocalizations.of(context).backButtonTooltip,
       style: ButtonStyle(
         shape: ButtonStyleButton.allOrNull(shape),
       ),

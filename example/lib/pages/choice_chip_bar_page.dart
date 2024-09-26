@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:yaru_widgets/yaru_widgets.dart';
+import 'package:yaru/yaru.dart';
 
 class ChoiceChipBarPage extends StatefulWidget {
   const ChoiceChipBarPage({super.key});
@@ -29,6 +29,10 @@ class _ChoiceChipBarPageState extends State<ChoiceChipBarPage> {
         child: Column(
           children: [
             YaruChoiceChipBar(
+              selectedFirst: false,
+              showCheckMarks: false,
+              shrinkWrap: true,
+              clearOnSelect: false,
               yaruChoiceChipBarStyle: YaruChoiceChipBarStyle.stack,
               labels: _labels.map(Text.new).toList(),
               isSelected: _isSelected,

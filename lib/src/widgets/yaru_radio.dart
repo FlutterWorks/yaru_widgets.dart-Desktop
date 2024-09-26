@@ -141,7 +141,7 @@ class YaruRadio<T> extends StatefulWidget implements YaruTogglable<T?> {
   final MouseCursor? mouseCursor;
 
   @override
-  final MaterialStatesController? statesController;
+  final WidgetStatesController? statesController;
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -195,12 +195,12 @@ class _YaruRadioState<T> extends YaruTogglableState<YaruRadio<T?>> {
     final painter = _YaruRadioPainter();
     fillPainterDefaults(painter);
 
-    const unselectedState = <MaterialState>{};
-    const selectedState = {MaterialState.selected};
-    const disabledState = {MaterialState.disabled};
+    const unselectedState = <WidgetState>{};
+    const selectedState = {WidgetState.selected};
+    const disabledState = {WidgetState.disabled};
     const selectedDisabledState = {
-      MaterialState.selected,
-      MaterialState.disabled,
+      WidgetState.selected,
+      WidgetState.disabled,
     };
 
     // Normal colors
@@ -231,10 +231,10 @@ class _YaruRadioState<T> extends YaruTogglableState<YaruRadio<T?>> {
 
     // Indicator colors
     final hoverIndicatorColor =
-        radioTheme.indicatorColor?.resolve({MaterialState.hovered}) ??
+        radioTheme.indicatorColor?.resolve({WidgetState.hovered}) ??
             painter.hoverIndicatorColor;
     final focusIndicatorColor =
-        radioTheme.indicatorColor?.resolve({MaterialState.focused}) ??
+        radioTheme.indicatorColor?.resolve({WidgetState.focused}) ??
             painter.focusIndicatorColor;
 
     return buildToggleable(
@@ -251,7 +251,7 @@ class _YaruRadioState<T> extends YaruTogglableState<YaruRadio<T?>> {
         ..focusIndicatorColor = focusIndicatorColor,
       mouseCursor: widget.mouseCursor ??
           radioTheme.mouseCursor
-              ?.resolve({if (!widget.interactive) MaterialState.disabled}),
+              ?.resolve({if (!widget.interactive) WidgetState.disabled}),
     );
   }
 }
@@ -260,24 +260,17 @@ class _YaruRadioPainter extends YaruTogglablePainter {
   @override
   void paintTogglable(
     Canvas canvas,
-    Size realSize,
     Size size,
-    Offset origin,
     double t,
   ) {
-    drawStateIndicator(canvas, realSize, null);
-    _drawBox(canvas, size, origin, t);
-    _drawDot(canvas, size, origin, t);
+    drawStateIndicator(canvas, size);
+    _drawBox(canvas, size, t);
+    _drawDot(canvas, size, t);
   }
 
-  void _drawBox(Canvas canvas, Size size, Offset origin, double t) {
+  void _drawBox(Canvas canvas, Size size, double t) {
     canvas.drawOval(
-      Rect.fromLTWH(
-        origin.dx,
-        origin.dy,
-        size.width,
-        size.height,
-      ),
+      Offset.zero & size,
       Paint()
         ..color = interactive
             ? Color.lerp(uncheckedColor, checkedColor, t)!
@@ -286,12 +279,7 @@ class _YaruRadioPainter extends YaruTogglablePainter {
     );
 
     canvas.drawOval(
-      Rect.fromLTWH(
-        origin.dx + 0.5,
-        origin.dy + 0.5,
-        size.width - 1.0,
-        size.height - 1.0,
-      ),
+      Rect.fromLTWH(0.5, 0.5, size.width - 1.0, size.height - 1.0),
       Paint()
         ..color = interactive
             ? Color.lerp(uncheckedBorderColor, checkedBorderColor, t)!
@@ -304,8 +292,8 @@ class _YaruRadioPainter extends YaruTogglablePainter {
     );
   }
 
-  void _drawDot(Canvas canvas, Size size, Offset origin, double t) {
-    final center = (Offset.zero & size).center + origin;
+  void _drawDot(Canvas canvas, Size size, double t) {
+    final center = (Offset.zero & size).center;
     final dotSize = size * _kDotSizeFactor;
 
     canvas.drawOval(

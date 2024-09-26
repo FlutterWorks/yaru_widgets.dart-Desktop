@@ -1,9 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:yaru/yaru.dart';
-import 'package:yaru_widgets/constants.dart';
+import 'package:yaru/constants.dart';
+import 'package:yaru/theme.dart';
 import 'package:yaru_window/yaru_window.dart';
 
 import 'yaru_title_bar_gesture_detector.dart';
@@ -44,6 +45,9 @@ class YaruTitleBar extends StatelessWidget implements PreferredSizeWidget {
     this.onRestore,
     this.onShowMenu,
     this.heroTag = _kYaruTitleBarHeroTag,
+    this.platform,
+    this.buttonPadding,
+    this.buttonSpacing,
   });
 
   /// The primary title widget.
@@ -120,6 +124,22 @@ class YaruTitleBar extends StatelessWidget implements PreferredSizeWidget {
   /// in place during page transitions. If set to `null`, no [Hero] will be used.
   final Object? heroTag;
 
+  /// Platform style of this window control, see [YaruWindowControlPlatform].
+  ///
+  /// Set to null if you want to auto select the correct platform.
+  /// When [Platform.isWindows] is true, [YaruWindowControlPlatform.windows] will be used,
+  /// [YaruWindowControlPlatform.yaru] will be used in all the other cases.
+  final YaruWindowControlPlatform? platform;
+
+  /// Optional padding around all [YaruWindowControl] buttons
+  /// Defaulting to `EdgeInsets.symmetic(horizontal: 10)`
+  /// or `EdgeInsets.only(bottom: 17)` on windows
+  final EdgeInsetsGeometry? buttonPadding;
+
+  /// Optional spacing between the [YaruWindowControl] buttons
+  /// Defaults to 14 or 0 if Windows
+  final double? buttonSpacing;
+
   @override
   Size get preferredSize =>
       Size(0, style == YaruTitleBarStyle.hidden ? 0 : kYaruTitleBarHeight);
@@ -133,21 +153,21 @@ class YaruTitleBar extends StatelessWidget implements PreferredSizeWidget {
     final theme = Theme.of(context);
     final light = theme.colorScheme.isLight;
     final highContrast = theme.colorScheme.isHighContrast;
-    final states = <MaterialState>{
-      if (isActive != false) MaterialState.focused,
+    final states = <WidgetState>{
+      if (isActive != false) WidgetState.focused,
     };
-    final defaultBackgroundColor = MaterialStateProperty.resolveWith((states) {
-      if (!states.contains(MaterialState.focused)) {
-        return theme.colorScheme.background;
+    final defaultBackgroundColor = WidgetStateProperty.resolveWith((states) {
+      if (!states.contains(WidgetState.focused)) {
+        return theme.colorScheme.surface;
       }
       return light ? YaruColors.titleBarLight : YaruColors.titleBarDark;
     });
     final backgroundColor =
-        MaterialStateProperty.resolveAs(this.backgroundColor, states) ??
+        WidgetStateProperty.resolveAs(this.backgroundColor, states) ??
             titleBarTheme.backgroundColor?.resolve(states) ??
             defaultBackgroundColor.resolve(states);
     final foregroundColor =
-        MaterialStateProperty.resolveAs(this.foregroundColor, states) ??
+        WidgetStateProperty.resolveAs(this.foregroundColor, states) ??
             titleBarTheme.foregroundColor?.resolve(states) ??
             theme.colorScheme.onSurface;
 
@@ -171,10 +191,19 @@ class YaruTitleBar extends StatelessWidget implements PreferredSizeWidget {
     final shape =
         border + (this.shape ?? titleBarTheme.shape ?? const Border());
 
-    final buttonSpacing = titleBarTheme.buttonSpacing ?? 0;
-    final buttonPadding = titleBarTheme.buttonPadding ?? EdgeInsets.zero;
+    final bSpacing = buttonSpacing ??
+        titleBarTheme.buttonSpacing ??
+        (!kIsWeb && Platform.isWindows ? 0 : 14);
+    final bPadding = buttonPadding ??
+        titleBarTheme.buttonPadding ??
+        (!kIsWeb && Platform.isWindows
+            ? const EdgeInsets.only(bottom: 18)
+            : const EdgeInsets.symmetric(horizontal: 10));
+    final windowControlPlatform = platform ??
+        (!kIsWeb && Platform.isWindows
+            ? YaruWindowControlPlatform.windows
+            : YaruWindowControlPlatform.yaru);
 
-    // TODO: backdrop effect
     Widget? backdropEffect(Widget? child) {
       if (child == null) return null;
       return AnimatedOpacity(
@@ -197,6 +226,12 @@ class YaruTitleBar extends StatelessWidget implements PreferredSizeWidget {
       );
     }
 
+    final closeButton = YaruWindowControl(
+      platform: windowControlPlatform,
+      iconColor: WidgetStatePropertyAll(foregroundColor),
+      type: YaruWindowControlType.close,
+      onTap: onClose != null ? () => onClose!(context) : null,
+    );
     return TextFieldTapRegion(
       child: YaruTitleBarGestureDetector(
         onDrag: isDraggable == true ? (_) => onDrag?.call(context) : null,
@@ -231,13 +266,14 @@ class YaruTitleBar extends StatelessWidget implements PreferredSizeWidget {
                             isMaximizable == true ||
                             isClosable == true))
                       Padding(
-                        padding: buttonPadding,
+                        padding: bPadding,
                         child: Row(
                           children: [
                             if (isMinimizable == true)
                               YaruWindowControl(
-                                foregroundColor: foregroundColor,
-                                backgroundColor: backgroundColor,
+                                platform: windowControlPlatform,
+                                iconColor:
+                                    WidgetStatePropertyAll(foregroundColor),
                                 type: YaruWindowControlType.minimize,
                                 onTap: onMinimize != null
                                     ? () => onMinimize!(context)
@@ -245,8 +281,9 @@ class YaruTitleBar extends StatelessWidget implements PreferredSizeWidget {
                               ),
                             if (isRestorable == true)
                               YaruWindowControl(
-                                foregroundColor: foregroundColor,
-                                backgroundColor: backgroundColor,
+                                platform: windowControlPlatform,
+                                iconColor:
+                                    WidgetStatePropertyAll(foregroundColor),
                                 type: YaruWindowControlType.restore,
                                 onTap: onRestore != null
                                     ? () => onRestore!(context)
@@ -254,23 +291,24 @@ class YaruTitleBar extends StatelessWidget implements PreferredSizeWidget {
                               ),
                             if (isMaximizable == true)
                               YaruWindowControl(
-                                foregroundColor: foregroundColor,
-                                backgroundColor: backgroundColor,
+                                platform: windowControlPlatform,
+                                iconColor:
+                                    WidgetStatePropertyAll(foregroundColor),
                                 type: YaruWindowControlType.maximize,
                                 onTap: onMaximize != null
                                     ? () => onMaximize!(context)
                                     : null,
                               ),
                             if (isClosable == true)
-                              YaruWindowControl(
-                                foregroundColor: foregroundColor,
-                                backgroundColor: backgroundColor,
-                                type: YaruWindowControlType.close,
-                                onTap: onClose != null
-                                    ? () => onClose!(context)
-                                    : null,
-                              ),
-                          ].withSpacing(buttonSpacing),
+                              isMaximizable == true
+                                  ? closeButton
+                                  : ClipRRect(
+                                      borderRadius: const BorderRadius.only(
+                                        topRight: Radius.circular(6),
+                                      ),
+                                      child: closeButton,
+                                    ),
+                          ].withSpacing(bSpacing),
                         ),
                       ),
                   ],
@@ -301,7 +339,7 @@ extension _ListSpacing on List<Widget> {
 /// maximizing, restoring, and closing the window, as well as a context menu,
 /// and double-click-to-maximize and drag-to-move functionality.
 ///
-/// ![](https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/doc/assets/yaru_window_title_bar.png)
+/// ![](https://raw.githubusercontent.com/ubuntu/yaru.dart/main/doc/assets/yaru_window_title_bar.png)
 ///
 /// ### Initialization
 ///
@@ -354,7 +392,7 @@ extension _ListSpacing on List<Widget> {
 ///
 /// | Home | Builder |
 /// |---|---|
-/// | ![](https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/doc/assets/yaru_window_title_bar-home.png) | ![](https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/doc/assets/yaru_window_title_bar-builder.png) |
+/// | ![](https://raw.githubusercontent.com/ubuntu/yaru.dart/main/doc/assets/yaru_window_title_bar-home.png) | ![](https://raw.githubusercontent.com/ubuntu/yaru.dart/main/doc/assets/yaru_window_title_bar-builder.png) |
 ///
 /// ### Debug banner
 ///
@@ -380,7 +418,7 @@ extension _ListSpacing on List<Widget> {
 ///
 /// | `MaterialApp` | `CheckedModeBanner` |
 /// |---|---|
-/// | ![](https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/doc/assets/yaru_window_title_bar-debug.png) | ![](https://raw.githubusercontent.com/ubuntu/yaru_widgets.dart/main/doc/assets/yaru_window_title_bar-banner.png) |
+/// | ![](https://raw.githubusercontent.com/ubuntu/yaru.dart/main/doc/assets/yaru_window_title_bar-debug.png) | ![](https://raw.githubusercontent.com/ubuntu/yaru.dart/main/doc/assets/yaru_window_title_bar-banner.png) |
 class YaruWindowTitleBar extends StatelessWidget
     implements PreferredSizeWidget {
   const YaruWindowTitleBar({
@@ -408,6 +446,9 @@ class YaruWindowTitleBar extends StatelessWidget
     this.onRestore = YaruWindow.restore,
     this.onShowMenu = YaruWindow.showMenu,
     this.heroTag = _kYaruTitleBarHeroTag,
+    this.platform,
+    this.buttonPadding,
+    this.buttonSpacing,
   });
 
   /// The primary title widget.
@@ -484,6 +525,12 @@ class YaruWindowTitleBar extends StatelessWidget
   /// in place during page transitions. If set to `null`, no [Hero] will be used.
   final Object? heroTag;
 
+  final YaruWindowControlPlatform? platform;
+
+  final EdgeInsetsGeometry? buttonPadding;
+
+  final double? buttonSpacing;
+
   @override
   Size get preferredSize =>
       Size(0, style == YaruTitleBarStyle.hidden ? 0 : kYaruTitleBarHeight);
@@ -513,6 +560,9 @@ class YaruWindowTitleBar extends StatelessWidget
         }
         final state = snapshot.data;
         return YaruTitleBar(
+          platform: platform,
+          buttonPadding: buttonPadding,
+          buttonSpacing: buttonSpacing,
           leading: leading,
           title: title ?? Text(state?.title ?? ''),
           actions: actions,
@@ -577,6 +627,9 @@ class YaruDialogTitleBar extends YaruWindowTitleBar {
     super.onRestore = null,
     super.onShowMenu = YaruWindow.showMenu,
     super.heroTag = _kYaruTitleBarHeroTag,
+    super.platform,
+    super.buttonPadding,
+    super.buttonSpacing,
   });
 
   static const defaultShape = RoundedRectangleBorder(

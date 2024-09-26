@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:yaru/yaru.dart';
-import 'package:yaru_widgets/constants.dart';
+import 'package:yaru/constants.dart';
+import 'package:yaru/theme.dart';
 
 const double _kScrollbarThickness = 8.0;
 const double _kScrollbarMargin = 2.0;
@@ -61,6 +61,7 @@ class YaruMasterTile extends StatelessWidget {
         child: ListTile(
           selectedColor: theme.colorScheme.onSurface,
           iconColor: theme.colorScheme.onSurface.withOpacity(0.8),
+          minVerticalPadding: 6,
           visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
           shape: RoundedRectangleBorder(
             borderRadius:
@@ -123,7 +124,7 @@ class YaruMasterTile extends StatelessWidget {
         : _kScrollbarMargin * 2;
 
     final scrollBarThumbThikness =
-        scrollbarTheme.thickness?.resolve({MaterialState.hovered}) ??
+        scrollbarTheme.thickness?.resolve({WidgetState.hovered}) ??
             _kScrollbarThickness;
 
     return doubleMarginWidth + scrollBarThumbThikness;

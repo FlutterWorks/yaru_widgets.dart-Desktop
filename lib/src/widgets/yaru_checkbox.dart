@@ -131,7 +131,7 @@ class YaruCheckbox extends StatefulWidget implements YaruTogglable<bool?> {
   final MouseCursor? mouseCursor;
 
   @override
-  final MaterialStatesController? statesController;
+  final WidgetStatesController? statesController;
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -194,12 +194,12 @@ class _YaruCheckboxState extends YaruTogglableState<YaruCheckbox> {
     final painter = _YaruCheckboxPainter();
     fillPainterDefaults(painter);
 
-    const unselectedState = <MaterialState>{};
-    const selectedState = {MaterialState.selected};
-    const disabledState = {MaterialState.disabled};
+    const unselectedState = <WidgetState>{};
+    const selectedState = {WidgetState.selected};
+    const disabledState = {WidgetState.disabled};
     const selectedDisabledState = {
-      MaterialState.selected,
-      MaterialState.disabled,
+      WidgetState.selected,
+      WidgetState.disabled,
     };
 
     // Normal colors
@@ -237,10 +237,10 @@ class _YaruCheckboxState extends YaruTogglableState<YaruCheckbox> {
 
     // Indicator colors
     final hoverIndicatorColor =
-        checkboxTheme.indicatorColor?.resolve({MaterialState.hovered}) ??
+        checkboxTheme.indicatorColor?.resolve({WidgetState.hovered}) ??
             painter.hoverIndicatorColor;
     final focusIndicatorColor =
-        checkboxTheme.indicatorColor?.resolve({MaterialState.focused}) ??
+        checkboxTheme.indicatorColor?.resolve({WidgetState.focused}) ??
             painter.focusIndicatorColor;
 
     return buildToggleable(
@@ -259,7 +259,7 @@ class _YaruCheckboxState extends YaruTogglableState<YaruCheckbox> {
         ..focusIndicatorColor = focusIndicatorColor,
       mouseCursor: widget.mouseCursor ??
           checkboxTheme.mouseCursor
-              ?.resolve({if (!widget.interactive) MaterialState.disabled}),
+              ?.resolve({if (!widget.interactive) WidgetState.disabled}),
     );
   }
 }
@@ -268,25 +268,22 @@ class _YaruCheckboxPainter extends YaruTogglablePainter {
   @override
   void paintTogglable(
     Canvas canvas,
-    Size realSize,
     Size size,
-    Offset origin,
     double t,
   ) {
-    drawStateIndicator(canvas, realSize, null);
+    drawStateIndicator(canvas, size);
     _drawBox(
       canvas,
       size,
-      origin,
       oldChecked == false || checked == false ? t : 1,
     );
 
     // Four cases: false to null, false to true, null to false, true to false
     if (oldChecked == false || checked == false) {
       if (oldChecked == true || checked == true) {
-        _drawCheckMark(canvas, size, origin, t);
+        _drawCheckMark(canvas, size, t);
       } else if (oldChecked == null || checked == null) {
-        _drawDash(canvas, size, origin, t);
+        _drawDash(canvas, size, t);
       }
     }
     // Two cases: null to true, true to null
@@ -294,25 +291,25 @@ class _YaruCheckboxPainter extends YaruTogglablePainter {
       if (t <= 0.5) {
         final tShrink = 1 - t * 2;
         if (oldChecked == true) {
-          _drawCheckMark(canvas, size, origin, tShrink);
+          _drawCheckMark(canvas, size, tShrink);
         } else {
-          _drawDash(canvas, size, origin, tShrink);
+          _drawDash(canvas, size, tShrink);
         }
       } else {
         final tExpand = (t - 0.5) * 2.0;
         if (checked == true) {
-          _drawCheckMark(canvas, size, origin, tExpand);
+          _drawCheckMark(canvas, size, tExpand);
         } else {
-          _drawDash(canvas, size, origin, tExpand);
+          _drawDash(canvas, size, tExpand);
         }
       }
     }
   }
 
-  void _drawBox(Canvas canvas, Size size, Offset origin, double t) {
+  void _drawBox(Canvas canvas, Size size, double t) {
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        Rect.fromLTWH(origin.dx, origin.dy, size.width, size.height),
+        Offset.zero & size,
         _kCheckboxBorderRadius,
       ),
       Paint()
@@ -325,8 +322,8 @@ class _YaruCheckboxPainter extends YaruTogglablePainter {
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromLTWH(
-          origin.dx + 0.5,
-          origin.dy + 0.5,
+          0.5,
+          0.5,
           size.width - 1.0,
           size.height - 1.0,
         ),
@@ -344,7 +341,7 @@ class _YaruCheckboxPainter extends YaruTogglablePainter {
     );
   }
 
-  void _drawCheckMark(Canvas canvas, Size size, Offset origin, double t) {
+  void _drawCheckMark(Canvas canvas, Size size, double t) {
     final path = Path();
 
     final start = Offset(size.width * 0.1818, size.height * 0.4545);
@@ -355,16 +352,16 @@ class _YaruCheckboxPainter extends YaruTogglablePainter {
       final strokeT = t * 2.0;
       final drawMid = Offset.lerp(start, mid, strokeT)!;
 
-      path.moveTo(origin.dx + start.dx, origin.dy + start.dy);
-      path.lineTo(origin.dx + drawMid.dx, origin.dy + drawMid.dy);
-      path.lineTo(origin.dx + start.dx, origin.dy + start.dy);
+      path.moveTo(start.dx, start.dy);
+      path.lineTo(drawMid.dx, drawMid.dy);
+      path.lineTo(start.dx, start.dy);
     } else {
       final strokeT = (t - 0.5) * 2.0;
       final drawEnd = Offset.lerp(mid, end, strokeT)!;
 
-      path.moveTo(origin.dx + start.dx, origin.dy + start.dy);
-      path.lineTo(origin.dx + mid.dx, origin.dy + mid.dy);
-      path.lineTo(origin.dx + drawEnd.dx, origin.dy + drawEnd.dy);
+      path.moveTo(start.dx, start.dy);
+      path.lineTo(mid.dx, mid.dy);
+      path.lineTo(drawEnd.dx, drawEnd.dy);
     }
 
     canvas.drawPath(
@@ -373,7 +370,7 @@ class _YaruCheckboxPainter extends YaruTogglablePainter {
     );
   }
 
-  void _drawDash(Canvas canvas, Size size, Offset origin, double t) {
+  void _drawDash(Canvas canvas, Size size, double t) {
     const dashMarginFactor = (1 - _kDashSizeFactor) / 2;
 
     final start = Offset(size.width * dashMarginFactor, size.height * 0.5);
@@ -384,8 +381,8 @@ class _YaruCheckboxPainter extends YaruTogglablePainter {
     final drawEnd = Offset.lerp(mid, end, t)!;
 
     canvas.drawLine(
-      origin + drawStart,
-      origin + drawEnd,
+      drawStart,
+      drawEnd,
       _getCheckmarkPaint(),
     );
   }

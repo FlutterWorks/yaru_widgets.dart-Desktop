@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:yaru/yaru.dart';
+import 'package:yaru/theme.dart';
 
 import 'yaru_checkbox.dart';
 import 'yaru_radio.dart';
@@ -108,7 +108,7 @@ class YaruSwitch extends StatefulWidget implements YaruTogglable<bool> {
   final MouseCursor? mouseCursor;
 
   @override
-  final MaterialStatesController? statesController;
+  final WidgetStatesController? statesController;
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -144,6 +144,7 @@ class _YaruSwitchState extends YaruTogglableState<YaruSwitch> {
   Size get togglableSize => _kSwitchSize;
 
   bool isDragging = false;
+  double gestureDeltaDx = 0.0;
 
   @override
   void handleTap([Intent? _]) {
@@ -161,12 +162,12 @@ class _YaruSwitchState extends YaruTogglableState<YaruSwitch> {
     final painter = _YaruSwitchPainter();
     fillPainterDefaults(painter);
 
-    const unselectedState = <MaterialState>{};
-    const selectedState = {MaterialState.selected};
-    const disabledState = {MaterialState.disabled};
+    const unselectedState = <WidgetState>{};
+    const selectedState = {WidgetState.selected};
+    const disabledState = {WidgetState.disabled};
     const selectedDisabledState = {
-      MaterialState.selected,
-      MaterialState.disabled,
+      WidgetState.selected,
+      WidgetState.disabled,
     };
 
     final defaultBorderColor = colorScheme.isHighContrast
@@ -209,10 +210,10 @@ class _YaruSwitchState extends YaruTogglableState<YaruSwitch> {
 
     // Indicator colors
     final hoverIndicatorColor =
-        switchTheme.indicatorColor?.resolve({MaterialState.hovered}) ??
+        switchTheme.indicatorColor?.resolve({WidgetState.hovered}) ??
             painter.hoverIndicatorColor;
     final focusIndicatorColor =
-        switchTheme.indicatorColor?.resolve({MaterialState.focused}) ??
+        switchTheme.indicatorColor?.resolve({WidgetState.focused}) ??
             painter.focusIndicatorColor;
 
     return _maybeBuildGestureDetector(
@@ -234,7 +235,7 @@ class _YaruSwitchState extends YaruTogglableState<YaruSwitch> {
           ..focusIndicatorColor = focusIndicatorColor,
         mouseCursor: widget.mouseCursor ??
             switchTheme.mouseCursor
-                ?.resolve({if (!widget.interactive) MaterialState.disabled}),
+                ?.resolve({if (!widget.interactive) WidgetState.disabled}),
       ),
     );
   }
@@ -244,37 +245,27 @@ class _YaruSwitchState extends YaruTogglableState<YaruSwitch> {
       return child;
     }
 
+    final thumbSize = _kSwitchSize.height * _kSwitchThumbSizeFactor;
+    final thumbGap = (_kSwitchSize.height - thumbSize) / 2;
+    final innerWidth = _kSwitchSize.width - thumbGap * 2;
+
     return GestureDetector(
       onPanStart: (details) {
-        final thumbSize = _kSwitchSize.height * _kSwitchThumbSizeFactor;
-        final thumbGap = (_kSwitchSize.height - thumbSize) / 2;
-
-        final minDragX = widget.value
-            ? _kSwitchSize.width - (thumbGap + thumbSize)
-            : thumbGap;
-        final maxDragX =
-            widget.value ? _kSwitchSize.width - thumbGap : thumbGap + thumbSize;
-
-        if (details.localPosition.dx >= minDragX &&
-            details.localPosition.dx <= maxDragX) {
-          setState(() {
-            isDragging = true;
-            handleActiveChange(true);
-          });
-        }
+        setState(() {
+          gestureDeltaDx = positionController.value * (innerWidth - thumbSize);
+          isDragging = true;
+          handleActiveChange(true);
+          handleHoverChange(true);
+        });
       },
       onPanUpdate: (details) {
         if (!isDragging) {
           return;
         }
-
-        final thumbSize = _kSwitchSize.height * _kSwitchThumbSizeFactor;
-        final thumbGap = (_kSwitchSize.height - thumbSize) / 2;
-        final dragGap = thumbGap + thumbSize / 2;
-        final innerWidth = _kSwitchSize.width - dragGap * 2;
-
-        positionController.value =
-            (details.localPosition.dx - dragGap) / innerWidth;
+        gestureDeltaDx += details.delta.dx;
+        positionController.value = gestureDeltaDx / (innerWidth - thumbSize);
+        handleActiveChange(true);
+        handleHoverChange(true);
       },
       onPanEnd: (details) {
         if (!isDragging) {
@@ -284,6 +275,7 @@ class _YaruSwitchState extends YaruTogglableState<YaruSwitch> {
         setState(() {
           isDragging = false;
           handleActiveChange(false);
+          handleHoverChange(false);
 
           if (positionController.value < .5) {
             if (widget.value != false) {
@@ -312,19 +304,17 @@ class _YaruSwitchPainter extends YaruTogglablePainter {
   @override
   void paintTogglable(
     Canvas canvas,
-    Size realSize,
     Size size,
-    Offset origin,
     double t,
   ) {
-    _drawBox(canvas, size, origin, t);
-    _drawThumb(canvas, size, origin, t);
+    _drawBox(canvas, size, t);
+    _drawThumb(canvas, size, t);
   }
 
-  void _drawBox(Canvas canvas, Size size, Offset origin, double t) {
+  void _drawBox(Canvas canvas, Size size, double t) {
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        Rect.fromLTWH(origin.dx, origin.dy, size.width, size.height),
+        Offset.zero & size,
         Radius.circular(size.height),
       ),
       Paint()
@@ -337,8 +327,8 @@ class _YaruSwitchPainter extends YaruTogglablePainter {
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromLTWH(
-          origin.dx + 0.5,
-          origin.dy + 0.5,
+          0.5,
+          0.5,
           size.width - 1.0,
           size.height - 1.0,
         ),
@@ -356,7 +346,7 @@ class _YaruSwitchPainter extends YaruTogglablePainter {
     );
   }
 
-  void _drawThumb(Canvas canvas, Size size, Offset origin, double t) {
+  void _drawThumb(Canvas canvas, Size size, double t) {
     final margin = (size.height - size.height * _kSwitchThumbSizeFactor) / 2;
     final innerSize = Size(
       size.width - margin * 2,
@@ -366,7 +356,7 @@ class _YaruSwitchPainter extends YaruTogglablePainter {
 
     final start = Offset(radius + margin, radius + margin);
     final end = Offset(innerSize.width + margin - radius, radius + margin);
-    final center = Offset.lerp(start, end, t)! + origin;
+    final center = Offset.lerp(start, end, t)!;
 
     final paint = Paint()
       ..color = interactive

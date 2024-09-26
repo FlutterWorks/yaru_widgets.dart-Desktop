@@ -11,14 +11,22 @@ class ExampleModel extends SafeChangeNotifier {
 
   final Connectivity _connectivity;
   StreamSubscription? _connectivitySub;
-  ConnectivityResult? _connectivityResult = ConnectivityResult.wifi;
-  ConnectivityResult? get state => _connectivityResult;
+  List<ConnectivityResult> _connectivityResult = [ConnectivityResult.wifi];
+  List<ConnectivityResult> get state => _connectivityResult;
 
   bool _compactMode = false;
   bool get compactMode => _compactMode;
   set compactMode(bool value) {
     if (value == _compactMode) return;
     _compactMode = value;
+    notifyListeners();
+  }
+
+  bool _rtl = false;
+  bool get rtl => _rtl;
+  set rtl(bool value) {
+    if (value == _rtl) return;
+    _rtl = value;
     notifyListeners();
   }
 
@@ -40,7 +48,12 @@ class ExampleModel extends SafeChangeNotifier {
     });
   }
 
-  bool get appIsOnline => _connectivityResult != ConnectivityResult.none;
+  bool get appIsOnline =>
+      _connectivityResult.contains(ConnectivityResult.wifi) ||
+      _connectivityResult.contains(ConnectivityResult.ethernet) ||
+      _connectivityResult.contains(ConnectivityResult.bluetooth) ||
+      _connectivityResult.contains(ConnectivityResult.mobile) ||
+      _connectivityResult.contains(ConnectivityResult.vpn);
 
   Future<void> initConnectivity() async {
     _connectivitySub = _connectivity.onConnectivityChanged.listen((result) {
